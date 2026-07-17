@@ -1,4 +1,5 @@
 const Admin = require('../models/Admin');
+const Solicitud = require('../models/Solicitud');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
@@ -20,58 +21,91 @@ exports.solicitarRegistro = async (req, res) => {
     const { nombre, email } = req.body;
 
     try {
+        
+        const adminExistente = await Admin.findOne({ email });
+        if (adminExistente) return res.status(400).json({ msg: 'Este correo ya es administrador' });
+
+        // Guardar la solicitud en la base de datos
+        const nuevaSolicitud = new Solicitud({ nombre, email });
+        await nuevaSolicitud.save();
+
+        
+        const urlFrontend = `http://localhost:3000/gestionar-solicitud/${nuevaSolicitud._id}`; //url temporal... pendiente
+
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: CORREO_ADMIN,
             subject: 'Nueva solicitud de registro de Administrador',
-            text: `El usuario ${nombre} con el correo ${email} ha solicitado acceso de administrador a la plataforma de Smash Guatemala.`
+            html: `
+                <h3>Nueva solicitud de acceso</h3>
+                <p><strong>Nombre:</strong> ${nombre}</p>
+                <p><strong>Correo:</strong> ${email}</p>
+                <br>
+                <p>Para aceptar o rechazar esta solicitud, ingresa al siguiente enlace:</p>
+                <a href="${urlFrontend}">${urlFrontend}</a>
+            `
         };
 
         await transporter.sendMail(mailOptions);
         res.status(200).json({ msg: 'Solicitud enviada al administrador principal' });
     } catch (error) {
-        res.status(500).json({ msg: 'Error al enviar la solicitud', error });
+        res.status(500).json({ msg: 'Error al procesar la solicitud', error });
     }
 };
 
-// El admin aprueba y crea la cuenta , generando tambien una contraseña aleatoria.
-exports.crearAdmin = async (req, res) => {
-    const { nombre, email } = req.body;
+exports.procesarSolicitud = async (req, res) => {
+    
+    const { accion } = req.body; 
+    const { id } = req.params;
 
     try {
-        let admin = await Admin.findOne({ email });
-        if (admin) return res.status(400).json({ msg: 'El administrador ya existe' });
+        const solicitud = await Solicitud.findById(id);
+        if (!solicitud) return res.status(404).json({ msg: 'Solicitud no encontrada' });
+        if (solicitud.estado !== 'pendiente') return res.status(400).json({ msg: `Esta solicitud ya fue ${solicitud.estado}` });
 
-        // generar contraseña aleatoria segura
-        const randomPassword = crypto.randomBytes(8).toString('hex');
-        
-        // hashear la contraseña
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(randomPassword, salt);
+        if (accion === 'rechazar') {
+            solicitud.estado = 'rechazada';
+            await solicitud.save();
+            return res.json({ msg: 'La solicitud ha sido rechazada exitosamente' });
+        }
 
-        admin = new Admin({
-            nombre,
-            email,
-            password: hashedPassword
-        });
+        if (accion === 'aceptar') {
+            // Generar contraseña y crear el admin
+            const randomPassword = crypto.randomBytes(8).toString('hex');
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(randomPassword, salt);
 
-        await admin.save();
+            const nuevoAdmin = new Admin({
+                nombre: solicitud.nombre,
+                email: solicitud.email,
+                password: hashedPassword
+            });
 
-        // enviar contraseña al correo del nuevo administrador
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: 'Tu cuenta de Administrador ha sido creada',
-            text: `Hola ${nombre},\n\nTu cuenta ha sido aprobada. Tu contraseña temporal es: ${randomPassword}\n\nPor favor inicia sesión y cámbiala inmediatamente.`
-        };
+            await nuevoAdmin.save();
 
-        await transporter.sendMail(mailOptions);
-        res.status(201).json({ msg: 'Administrador creado y correo enviado exitosamente' });
+            // Cambiar estado de la solicitud
+            solicitud.estado = 'aceptada';
+            await solicitud.save();
+
+            // Enviar la contraseña al nuevo admin
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: solicitud.email,
+                subject: 'Tu cuenta de Administrador en SmashGT ha sido aprobada',
+                text: `Hola ${solicitud.nombre},\n\nTu cuenta ha sido aprobada. Tu contraseña temporal es: ${randomPassword}\n\nPor favor inicia sesión y cámbiala.`
+            };
+
+            await transporter.sendMail(mailOptions);
+            return res.status(201).json({ msg: 'Administrador creado y correo enviado exitosamente' });
+        }
+
+        res.status(400).json({ msg: 'Acción no válida. Usa "aceptar" o "rechazar".' });
 
     } catch (error) {
-        res.status(500).json({ msg: 'Error al crear el administrador', error });
+        res.status(500).json({ msg: 'Error al procesar la solicitud', error });
     }
 };
+
 
 // Login del admin
 exports.login = async (req, res) => {
