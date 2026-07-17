@@ -36,7 +36,7 @@ exports.actualizarNoticia = async (req, res) => {
         const noticiaActualizada = await News.findByIdAndUpdate(
             req.params.id, 
             req.body, 
-            { new: true }
+            { returnDocument: 'after'}
         );
         
         if (!noticiaActualizada) return res.status(404).json({ msg: 'Noticia no encontrada' });
