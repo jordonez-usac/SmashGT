@@ -131,7 +131,7 @@ exports.login = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ msg: 'Error en el servidor', error });
+        res.status(500).json({ msg: 'Error en el servidor', error: error.message }); 
     }
 };
 
