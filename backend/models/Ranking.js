@@ -1,31 +1,106 @@
 const mongoose = require('mongoose');
 
+const matchupStatSchema = new mongoose.Schema({
+    value: {
+        type: String,
+        default: ""
+    },
+    opponent: {
+        type: String,
+        default: ""
+    }
+}, { _id: false });
+
+const matchupsSchema = new mongoose.Schema({
+    mostWon: { type: matchupStatSchema, default: null },
+    mostLost: { type: matchupStatSchema, default: null },
+    mostPlayed: { type: matchupStatSchema, default: null },
+    bestWinRate: { type: matchupStatSchema, default: null },
+    worstWinRate: { type: matchupStatSchema, default: null }
+}, { _id: false });
+
+const matchesSchema = new mongoose.Schema({
+    winRate: {
+        type: String,
+        default: "0%"
+    },
+    wins: {
+        type: Number,
+        default: 0
+    },
+    losses: {
+        type: Number,
+        default: 0
+    }
+}, { _id: false });
+
+const h2hSchema = new mongoose.Schema({
+    rival: { type: String, required: true },
+    ganados: { type: Number, default: 0 },
+    perdidos: { type: Number, default: 0 }
+}, { _id: false });
 
 const playerSchema = new mongoose.Schema({
-    puesto: { 
-        type: Number, 
-        required: true 
+    puesto: {
+        type: Number,
+        required: true
     },
-    nombre: { 
-        type: String, 
-        required: true 
+    nombre: {
+        type: String,
+        required: true
     },
-    skin: { 
-        type: String, 
-        required: true 
+    team: {
+        type: String,
+        default: null
     },
-    player_id: { 
-        type: String, 
-        required: true 
+    skin: {
+        type: String,
+        default: ""
+    },
+    player_id: {
+        type: String,
+        default: ""
+    },
+    braacket_id: {
+        type: String,
+        default: ""
+    },
+    url_perfil: {
+        type: String,
+        default: ""
+    },
+    puntos: {
+        type: Number,
+        default: null
+    },
+    personajes: {
+        type: [String],
+        default: []
+    },
+    h2h: {
+        type: [h2hSchema],
+        default: []
+    },
+    matchups: {
+        type: matchupsSchema,
+        default: () => ({})
+    },
+    matches: {
+        type: matchesSchema,
+        default: () => ({})
     }
-}, { _id: false }); // Evitamos que Mongoose le asigne un id único a cada jugador del arreglo para mantenerlo limpio
+}, { _id: false });
 
 const rankingSchema = new mongoose.Schema({
-    titulo: { 
-        type: String, 
-        required: true 
+    titulo: {
+        type: String,
+        required: true
     },
-    jugadores: [playerSchema] 
+    url_braacket: {
+        type: String,
+        default: ""
+    },
+    jugadores: [playerSchema]
 }, {
     timestamps: true
 });
