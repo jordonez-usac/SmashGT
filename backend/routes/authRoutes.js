@@ -1,20 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-const auth = require('../middlewares/authMiddleware'); 
+const { auth, authCambioPassword, soloPrincipal } = require('../middlewares/authMiddleware');
+const { limiteLogin, limiteSolicitud, limiteCambioPassword } = require('../middlewares/rateLimit');
 
-//publica
-router.post('/solicitar', authController.solicitarRegistro);
+router.post('/solicitar', limiteSolicitud, authController.solicitarRegistro);
 
+router.post('/login', limiteLogin, authController.login);
 
-//publica
-router.post('/login', authController.login);
+router.put('/cambiar-password', limiteCambioPassword, authCambioPassword, authController.cambiarPassword);
 
-//protegida
-router.put('/cambiar-password', auth, authController.cambiarPassword);
+router.get('/yo', auth, authController.yo);
 
-//protegida
-router.post('/solicitudes/:id/responder', auth, authController.procesarSolicitud);
-
+router.get('/solicitudes', auth, soloPrincipal, authController.listarSolicitudes);
+router.get('/solicitudes/:id', auth, soloPrincipal, authController.obtenerSolicitud);
+router.post('/solicitudes/:id/responder', auth, soloPrincipal, authController.procesarSolicitud);
 
 module.exports = router;
