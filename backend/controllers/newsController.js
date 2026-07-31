@@ -1,74 +1,96 @@
 const News = require('../models/News');
+const { sanitizarHtml } = require('../utils/sanitizarHtml');
 
-// Crear una noticia
+const noEncontrada = (res, error) =>
+    error?.name === 'CastError' ? res.status(404).json({ msg: 'Noticia no encontrada' }) : null;
+
 exports.crearNoticia = async (req, res) => {
     const { titulo, descripcion, contenido } = req.body;
-    
+
     try {
         const nuevaNoticia = new News({
             titulo,
             descripcion,
-            contenido,
-            autor: req.admin.id 
+            contenido: sanitizarHtml(contenido),
+            autor: req.admin.id
         });
 
         const noticiaGuardada = await nuevaNoticia.save();
+        await noticiaGuardada.populate('autor', 'nombre');
         res.status(201).json(noticiaGuardada);
     } catch (error) {
-        res.status(500).json({ msg: 'Error al crear la noticia', error });
+        res.status(500).json({ msg: 'Error al crear la noticia', error: error.message });
     }
 };
 
-// obtener noticias
 exports.obtenerNoticias = async (req, res) => {
     try {
-        // Hacemos populate para traernos el nombre del autor de Admin
         const noticias = await News.find().populate('autor', 'nombre').sort({ createdAt: -1 });
         res.json(noticias);
     } catch (error) {
-        res.status(500).json({ msg: 'Error al obtener las noticias', error });
+        res.status(500).json({ msg: 'Error al obtener las noticias', error: error.message });
     }
 };
 
-// Actualizar una noticia
+exports.obtenerNoticiaPorId = async (req, res) => {
+    try {
+        const noticia = await News.findById(req.params.id).populate('autor', 'nombre');
+        if (!noticia) return res.status(404).json({ msg: 'Noticia no encontrada' });
+
+        res.json(noticia);
+    } catch (error) {
+        if (noEncontrada(res, error)) return;
+        res.status(500).json({ msg: 'Error al obtener la noticia', error: error.message });
+    }
+};
+
 exports.actualizarNoticia = async (req, res) => {
     try {
+        const { titulo, descripcion, contenido } = req.body;
+
+        const cambios = {};
+        if (titulo !== undefined) cambios.titulo = titulo;
+        if (descripcion !== undefined) cambios.descripcion = descripcion;
+        if (contenido !== undefined) cambios.contenido = sanitizarHtml(contenido);
+
         const noticiaActualizada = await News.findByIdAndUpdate(
-            req.params.id, 
-            req.body, 
-            { returnDocument: 'after'}
-        );
-        
+            req.params.id,
+            cambios,
+            { returnDocument: 'after', runValidators: true }
+        ).populate('autor', 'nombre');
+
         if (!noticiaActualizada) return res.status(404).json({ msg: 'Noticia no encontrada' });
         res.json(noticiaActualizada);
     } catch (error) {
-        res.status(500).json({ msg: 'Error al actualizar la noticia', error });
+        if (noEncontrada(res, error)) return;
+        res.status(500).json({ msg: 'Error al actualizar la noticia', error: error.message });
     }
 };
 
-// Eliminar una noticia
 exports.eliminarNoticia = async (req, res) => {
     try {
         const noticiaEliminada = await News.findByIdAndDelete(req.params.id);
         if (!noticiaEliminada) return res.status(404).json({ msg: 'Noticia no encontrada' });
-        
+
         res.json({ msg: 'Noticia eliminada correctamente' });
     } catch (error) {
-        res.status(500).json({ msg: 'Error al eliminar la noticia', error });
+        if (noEncontrada(res, error)) return;
+        res.status(500).json({ msg: 'Error al eliminar la noticia', error: error.message });
     }
 };
 
-// Dar Like a una noticia 
 exports.darLike = async (req, res) => {
     try {
-        const noticia = await News.findById(req.params.id);
+        const noticia = await News.findByIdAndUpdate(
+            req.params.id,
+            { $inc: { likes: 1 } },
+            { returnDocument: 'after' }
+        );
         if (!noticia) return res.status(404).json({ msg: 'Noticia no encontrada' });
-
-        noticia.likes += 1;
-        await noticia.save();
 
         res.json({ msg: 'Like registrado', likes: noticia.likes });
     } catch (error) {
-        res.status(500).json({ msg: 'Error al dar like', error });
+        if (noEncontrada(res, error)) return;
+        res.status(500).json({ msg: 'Error al dar like', error: error.message });
     }
 };

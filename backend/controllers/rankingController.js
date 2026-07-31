@@ -1,12 +1,13 @@
 const Ranking = require('../models/Ranking');
+const { mergeJugadores } = require('../utils/mergeJugadores');
 
-//crear ranking
 exports.crearRanking = async (req, res) => {
-    const { titulo, jugadores } = req.body;
-    
+    const { titulo, jugadores, url_braacket } = req.body;
+
     try {
         const nuevoRanking = new Ranking({
             titulo,
+            url_braacket,
             jugadores
         });
 
@@ -18,9 +19,8 @@ exports.crearRanking = async (req, res) => {
     }
 };
 
-// obtener todos los rankings 
 exports.obtenerRankings = async (req, res) => {
-    try { 
+    try {
         const rankings = await Ranking.find().select('-jugadores').sort({ createdAt: -1 });
         res.json(rankings);
     } catch (error) {
@@ -28,40 +28,48 @@ exports.obtenerRankings = async (req, res) => {
     }
 };
 
-// obtener un ranking específico con todos sus jugadores
 exports.obtenerRankingPorId = async (req, res) => {
     try {
         const ranking = await Ranking.findById(req.params.id);
         if (!ranking) return res.status(404).json({ msg: 'Ranking no encontrado' });
-        
+
         res.json(ranking);
     } catch (error) {
         res.status(500).json({ msg: 'Error al obtener el ranking', error: error.message });
     }
 };
 
-// actualizar un ranking
 exports.actualizarRanking = async (req, res) => {
     try {
-        const rankingActualizado = await Ranking.findByIdAndUpdate(
-            req.params.id, 
-            req.body, 
-            { returnDocument: 'after' }
-        );
-        
-        if (!rankingActualizado) return res.status(404).json({ msg: 'Ranking no encontrado' });
+        const ranking = await Ranking.findById(req.params.id);
+        if (!ranking) return res.status(404).json({ msg: 'Ranking no encontrado' });
+
+        const { titulo, url_braacket, jugadores, reemplazar_h2h } = req.body;
+
+        if (titulo !== undefined) ranking.titulo = titulo;
+        if (url_braacket !== undefined) ranking.url_braacket = url_braacket;
+
+        if (Array.isArray(jugadores)) {
+            ranking.jugadores = mergeJugadores(
+                ranking.toObject().jugadores,
+                jugadores,
+                { prioridadEdiciones: 'nuevo', reemplazarH2H: reemplazar_h2h === true }
+            );
+        }
+
+        const rankingActualizado = await ranking.save();
         res.json(rankingActualizado);
     } catch (error) {
+        console.log("Error al actualizar ranking:", error);
         res.status(500).json({ msg: 'Error al actualizar el ranking', error: error.message });
     }
 };
 
-// eliminar un ranking
 exports.eliminarRanking = async (req, res) => {
     try {
         const rankingEliminado = await Ranking.findByIdAndDelete(req.params.id);
         if (!rankingEliminado) return res.status(404).json({ msg: 'Ranking no encontrado' });
-        
+
         res.json({ msg: 'Ranking eliminado correctamente' });
     } catch (error) {
         res.status(500).json({ msg: 'Error al eliminar el ranking', error: error.message });
