@@ -1,11 +1,11 @@
-const normalizar = (nombre) => (nombre || "").trim().toLowerCase();
+const normalizarNombre = (nombre) => (nombre || "").trim().toLowerCase();
 
 const llavesDeIdentidad = (jugador) => {
     const llaves = [];
     if (jugador.braacket_id) llaves.push(`braacket:${jugador.braacket_id}`);
     if (jugador.url_perfil) llaves.push(`url:${jugador.url_perfil}`);
     if (jugador.player_id) llaves.push(`startgg:${jugador.player_id}`);
-    const nombre = normalizar(jugador.nombre);
+    const nombre = normalizarNombre(jugador.nombre);
     if (nombre) llaves.push(`nombre:${nombre}`);
     return llaves;
 };
