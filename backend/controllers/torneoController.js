@@ -33,7 +33,6 @@ exports.listarParaMapa = async (req, res) => {
         if (manuales.status === 'rejected') throw manuales.reason;
 
         const propios = manuales.value.map(aFormatoMapa);
-        console.log('manuales', propios.length, 'startgg', startgg.value?.length);
         const yaCargados = new Set(propios.map((t) => slugDeStartgg(t.url)).filter(Boolean));
 
         const deStartgg = startgg.status === 'fulfilled'
