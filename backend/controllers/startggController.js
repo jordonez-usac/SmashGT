@@ -413,6 +413,118 @@ exports.resolverJugador = async (req, res) => {
     }
 };
 
+const CONSULTA_PARTICIPANTES = `query ParticipantesGT($desde: Timestamp!, $juego: ID!, $pagina: Int!) {
+    tournaments(query: {
+        perPage: 8,
+        page: $pagina,
+        sortBy: "startAt desc",
+        filter: { countryCode: "GT", afterDate: $desde, videogameIds: [$juego] }
+    }) {
+        pageInfo { totalPages }
+        nodes { participants(query: { perPage: 200, page: 1 }) { nodes { player { id gamerTag prefix } } } }
+    }
+}`;
+
+const TTL_INDICE = 60 * 60 * 1000;
+let indice = null;
+
+const indiceParticipantes = async () => {
+    if (indice && Date.now() - indice.momento < TTL_INDICE) return indice.jugadores;
+    const desde = Math.floor((Date.now() - DIAS_RESULTADOS * 24 * 60 * 60 * 1000) / 1000);
+    const jugadores = new Map();
+    for (let pagina = 1, total = 1; pagina <= total && pagina <= 20; pagina++) {
+        const data = await consultar(CONSULTA_PARTICIPANTES, null, { desde, juego: JUEGO_SMASH_ULTIMATE, pagina });
+        total = data.tournaments?.pageInfo?.totalPages || 0;
+        for (const torneo of data.tournaments?.nodes || []) {
+            for (const { player } of torneo.participants?.nodes || []) {
+                if (!player?.id) continue;
+                const previo = jugadores.get(player.id);
+                jugadores.set(player.id, {
+                    player_id: String(player.id),
+                    gamerTag: player.gamerTag,
+                    prefijo: player.prefix || null,
+                    torneos: (previo?.torneos || 0) + 1
+                });
+            }
+        }
+    }
+    indice = { momento: Date.now(), jugadores: [...jugadores.values()] };
+    return indice.jugadores;
+};
+
+const normalizarTag = (nombre) => sinPrefijo(nombre).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '');
+
+const candidatosPara = (nombre, jugadores) => {
+    const clave = normalizarTag(nombre);
+    if (clave.length < 2) return [];
+    return jugadores
+        .map((j) => ({ ...j, exacto: normalizarTag(j.gamerTag) === clave }))
+        .filter((j) => j.exacto || normalizarTag(j.gamerTag).includes(clave))
+        .sort((a, b) => b.exacto - a.exacto || b.torneos - a.torneos)
+        .slice(0, 3);
+};
+
+exports.buscarJugadores = async (req, res) => {
+    const nombres = req.body?.nombres;
+    if (!Array.isArray(nombres) || nombres.length > 200 || !nombres.every((n) => typeof n === 'string' && n.length <= 100)) {
+        return res.status(400).json({ msg: 'Manda "nombres": una lista de hasta 200 nombres' });
+    }
+    if (!process.env.STARTGG_API_KEY) {
+        return res.status(503).json({ msg: 'El servidor no tiene configurada STARTGG_API_KEY' });
+    }
+    try {
+        const jugadores = await indiceParticipantes();
+        res.json(nombres.map((nombre) => ({ nombre, candidatos: candidatosPara(nombre, jugadores) })));
+    } catch (error) {
+        console.log('Error buscando jugadores en start.gg:', error.message);
+        res.status(502).json({ msg: 'No se pudo consultar start.gg' });
+    }
+};
+
+const CONSULTA_SETS = `query SetsJugador($valor: ID!) {
+    player(id: $valor) { id sets(perPage: 25, page: 1) { nodes { event { videogame { id } } games { selections { entrant { participants { player { id } } } character { name } } } } } }
+}`;
+
+const mainDeSets = (jugador) => {
+    const conteo = new Map();
+    for (const set of jugador?.sets?.nodes || []) {
+        if (Number(set.event?.videogame?.id) !== JUEGO_SMASH_ULTIMATE) continue;
+        for (const game of set.games || []) {
+            for (const sel of game.selections || []) {
+                const nombre = sel.character?.name;
+                const esSuyo = sel.entrant?.participants?.some((p) => String(p.player?.id) === String(jugador.id));
+                if (esSuyo && nombre && nombre !== 'Random Character') conteo.set(nombre, (conteo.get(nombre) || 0) + 1);
+            }
+        }
+    }
+    const [personaje, partidas] = [...conteo].sort((a, b) => b[1] - a[1])[0] || [];
+    return personaje ? { personaje, partidas } : null;
+};
+
+exports.detectarMain = async (req, res) => {
+    const id = String(req.params.id || '');
+    if (!/^\d{1,12}$/.test(id)) return res.status(400).json({ msg: 'El player_id debe ser numérico' });
+    if (!process.env.STARTGG_API_KEY) {
+        return res.status(503).json({ msg: 'El servidor no tiene configurada STARTGG_API_KEY' });
+    }
+    try {
+        const llave = `main:${id}`;
+        let main = leerCache(llave);
+        if (main === null) {
+            const data = await consultar(CONSULTA_SETS, id);
+            if (!data.player) return res.status(404).json({ msg: 'No existe ese jugador en start.gg' });
+            main = mainDeSets(data.player) || false;
+            guardarCache(llave, main);
+        }
+        res.json({ main: main || null });
+    } catch (error) {
+        console.log('Error detectando el main en start.gg:', error.message);
+        res.status(502).json({ msg: 'No se pudo consultar start.gg' });
+    }
+};
+
+exports.mainDeSets = mainDeSets;
+exports.candidatosPara = candidatosPara;
 exports.obtenerPerfilStartgg = obtenerPerfilStartgg;
 exports.torneosDeGuatemala = torneosDeGuatemala;
 exports.armarResultado = armarResultado;
