@@ -2,9 +2,9 @@ const Ranking = require('../models/Ranking');
 
 const API = 'https://api.start.gg/gql/alpha';
 const JUEGO_SMASH_ULTIMATE = 1386;
-const LIMITE_STANDINGS = 10;
+const LIMITE_STANDINGS = 20;
 const PAIS = 'GT';
-const TTL_CACHE = 5 * 60 * 1000;
+const TTL_CACHE = 10 * 60 * 1000;
 
 const cache = new Map();
 
