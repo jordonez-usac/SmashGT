@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#081D30" />
+    <script>
+      try { document.documentElement.dataset.tema = localStorage.getItem('smashgt_tema') || 'oscuro'; } catch { document.documentElement.dataset.tema = 'oscuro'; }
+    </script>
+    <title>SmashGT · Smash competitivo en Guatemala</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
