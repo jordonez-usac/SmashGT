@@ -40,7 +40,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '6mb' }));
 
 app.use('/api', limiteGeneral);
 
