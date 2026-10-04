@@ -93,6 +93,12 @@ button, a { transition: color 160ms, background-color 160ms, border-color 160ms;
 .boton-tema { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--color-linea); background: var(--color-panel); color: var(--color-tinta); transition: border-color 160ms, color 160ms, transform 200ms; }
 .boton-tema:hover { border-color: var(--color-acento); color: var(--color-acento); }
 .boton-tema:active { transform: scale(.92); }
+.boton-tema .tema-astro { transition: r 500ms cubic-bezier(.65,0,.35,1); }
+.boton-tema .tema-mordida { transition: cx 500ms cubic-bezier(.65,0,.35,1), cy 500ms cubic-bezier(.65,0,.35,1); }
+.boton-tema .tema-rayos { transform-origin: center; transition: transform 500ms cubic-bezier(.65,0,.35,1), opacity 300ms; }
+.boton-tema[aria-pressed=true] .tema-astro { r: 9px; }
+.boton-tema[aria-pressed=true] .tema-mordida { cx: 17px; cy: 7px; }
+.boton-tema[aria-pressed=true] .tema-rayos { transform: rotate(90deg) scale(.4); opacity: 0; }
 .nav-enlaces { background: var(--nav-fondo); }
 .menu-lateral { margin: 0; inset: 0 auto 0 0; width: min(82vw, 320px); height: 100dvh; max-height: none; border: 0; border-right: 1px solid var(--color-linea); border-radius: 0 20px 20px 0; padding: 0; color: var(--color-contorno); isolation: isolate; overflow: clip; background: var(--cabecera);
   translate: -100% 0; transition: translate 420ms cubic-bezier(.22,1,.36,1), overlay 420ms allow-discrete, display 420ms allow-discrete; }
