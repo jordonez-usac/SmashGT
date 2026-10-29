@@ -114,7 +114,7 @@ export function PrimeraVez() {
             <div className="max-w-sm">
                 <h2 className="titulo-competitivo text-3xl sm:text-4xl">¿Primera vez<br />en un torneo?</h2>
                 <p className="mt-4 text-sm leading-6">No necesitas ser pro. Los torneos locales están llenos de gente que empezó igual que tú.</p>
-                <Link to="/torneos" className="accion-principal mt-6">Buscar mi primer torneo <IconoFlecha tam={18} /></Link>
+                <Link to="/#explorar" className="accion-principal mt-6">Buscar mi primer torneo <IconoFlecha tam={18} /></Link>
             </div>
             <ol className="grid flex-1 gap-3 sm:grid-cols-2">
                 {PASOS.map(([Icono, titulo, texto], i) => (
@@ -125,6 +125,28 @@ export function PrimeraVez() {
                     </li>
                 ))}
             </ol>
+        </section>
+    );
+}
+
+const MUESTRA_BANEO = [['final-destination', 'Final Destination', 0], ['pokemon-stadium-2', 'Pokémon Stadium 2', null], ['smashville', 'Smashville', 1]];
+
+export function BaneoStages() {
+    return (
+        <section data-scroll="panel" className="baneo-cta bloque-acento">
+            <div className="max-w-md">
+                <h2 className="titulo-competitivo text-3xl sm:text-4xl">¿Quién banea<br /><span>primero?</span></h2>
+                <p className="mt-4 text-sm leading-6">Hagan el striking y los baneos de stages desde un solo celular, con las reglas de su torneo. Sin discusiones en la mesa.</p>
+                <Link to="/baneo" className="accion-principal mt-6">Ir al baneo de stages <IconoFlecha tam={18} /></Link>
+            </div>
+            <Link to="/baneo" className="baneo-cta-collage" aria-hidden="true" tabIndex={-1}>
+                {MUESTRA_BANEO.map(([slug, nombre, quien], i) => (
+                    <span key={slug} className={`baneo-cta-carta ${quien === null ? 'elegida' : 'tachada'}`} style={{ '--i': i, '--lado': quien === 0 ? '#6fd0ff' : '#ff93a6' }}>
+                        <img src={`/stages/${slug}.webp`} alt="" loading="lazy" />
+                        <span>{nombre}</span>
+                    </span>
+                ))}
+            </Link>
         </section>
     );
 }

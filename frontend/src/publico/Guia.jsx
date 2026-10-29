@@ -80,7 +80,7 @@ export default function Guia() {
 
             <section data-scroll="panel" className="primera-vez bloque-acento justify-between">
                 <div><h2 className="titulo-competitivo text-3xl">¿Listo para jugar?</h2><p className="mt-3 text-sm leading-6">Busca el torneo más cercano y nos vemos en el bracket.</p></div>
-                <Link to="/torneos" className="accion-principal shrink-0">Ver torneos <IconoFlecha tam={18} /></Link>
+                <Link to="/#explorar" className="accion-principal shrink-0">Ver torneos <IconoFlecha tam={18} /></Link>
             </section>
         </div>
     );

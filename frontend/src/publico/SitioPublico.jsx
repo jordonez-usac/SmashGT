@@ -6,12 +6,12 @@ import { useMovimiento } from '../lib/movimiento';
 import FondoVivo from './FondoVivo';
 import { useScrollEntrada } from '../lib/useScrollEntrada';
 
-const enlaces = [{ a: '/', texto: 'Inicio', exacto: true }, { a: '/ranking', texto: 'Ranking' }, { a: '/jugadores', texto: 'Jugadores' }, { a: '/torneos', texto: 'Torneos' }, { a: '/resultados', texto: 'Resultados' }, { a: '/noticias', texto: 'Noticias' }, { a: '/guia', texto: 'Guía' }];
+const enlaces = [{ a: '/', texto: 'Inicio', exacto: true }, { a: '/ranking', texto: 'Ranking' }, { a: '/jugadores', texto: 'Jugadores' }, { a: '/baneo', texto: 'Baneo' }, { a: '/resultados', texto: 'Resultados' }, { a: '/noticias', texto: 'Noticias' }, { a: '/guia', texto: 'Guía' }];
 function IconoNav({ tipo }) {
     const trazos = {
         Inicio: 'M3 11 12 3l9 8M5 10v11h5v-7h4v7h5V10',
         Ranking: 'M8 3h8v7a4 4 0 0 1-8 0V3ZM8 5H4v3a4 4 0 0 0 4 4m8-7h4v3a4 4 0 0 1-4 4M12 14v6m-4 1h8',
-        Torneos: 'M8 3v4m8-4v4M4 10h16M4 5h16v16H4V5Zm4 9h3m2 0h3m-8 4h3',
+        Baneo: 'M3 6h18v12H3V6Zm6 9 6-6m-6 0 6 6',
         Noticias: 'M4 4h16v16H4V4Zm4 4h8m-8 4h8m-8 4h5',
         Admin: 'M12 3 4 6v6c0 4 8 9 8 9s8-5 8-9V6l-8-3Zm-3 9 2 2 4-4',
         Jugadores: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 10a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7M18 14a7 7 0 0 1 4 7',
@@ -23,8 +23,10 @@ function IconoNav({ tipo }) {
 const REDES = [
     ['WhatsApp', import.meta.env.VITE_REDES_WHATSAPP, 'M4 20l1.3-3.9A8 8 0 1 1 8 18.8L4 20Zm5-11c0 3 3 6 6 6l1.5-1.5-2-1-1 1c-1 0-2.5-1.5-2.5-2.5l1-1-1-2L9 9Z'],
     ['Discord', import.meta.env.VITE_REDES_DISCORD, 'M7 6c2-1 3.5-1 5-1s3 0 5 1c1.5 2 2.5 5 2.5 9-1.5 1.5-3 2-4 2l-1-2m-7 0-1 2c-1 0-2.5-.5-4-2 0-4 1-7 2.5-9M8 15c2.5 1 5.5 1 8 0M9.5 11.5h0m5 0h0'],
-    ['Instagram', import.meta.env.VITE_REDES_INSTAGRAM, 'M4 8a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8Zm8 7.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 7h0'],
-    ['Facebook', import.meta.env.VITE_REDES_FACEBOOK, 'M15 3h-2a4 4 0 0 0-4 4v3H6v4h3v7h4v-7h3l1-4h-4V7a1 1 0 0 1 1-1h2V3Z'],
+    ['Instagram', import.meta.env.VITE_REDES_INSTAGRAM || 'https://www.instagram.com/acaterank/', 'M4 8a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8Zm8 7.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 7h0'],
+    ['Facebook', import.meta.env.VITE_REDES_FACEBOOK || 'https://www.facebook.com/people/AcateRank/61558005806596/', 'M15 3h-2a4 4 0 0 0-4 4v3H6v4h3v7h4v-7h3l1-4h-4V7a1 1 0 0 1 1-1h2V3Z'],
+    ['X', import.meta.env.VITE_REDES_X || 'https://x.com/AcateRank', 'M4 4h4l12 16h-4L4 4Zm16 0-6.5 7.5M4 20l6.5-7.5'],
+    ['YouTube', import.meta.env.VITE_REDES_YOUTUBE || 'https://www.youtube.com/@AcateRank', 'M3 8a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8Zm7 1v6l5-3-5-3Z'],
     ['TikTok', import.meta.env.VITE_REDES_TIKTOK, 'M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.5 2.5 2.5 4.5 5 4.5'],
 ].filter(([, url]) => url);
 
@@ -100,13 +102,14 @@ export default function SitioPublico() {
             <footer className="mt-20 border-t border-linea">
                 <div className="mx-auto flex max-w-7xl flex-wrap justify-between gap-6 px-5 py-10 sm:px-8">
                     <div><p className="titulo-competitivo text-xl text-menta">SmashGT</p><p className="mt-2 text-sm text-tinta">La escena de Smash en Guatemala.</p></div>
+                    {REDES.length > 0 && <div><p className="mb-2 text-xs font-bold uppercase tracking-widest text-menta">Únete a la comunidad</p><div className="redes flex flex-wrap gap-2">{REDES.map(([nombre, url, trazo]) => <a key={nombre} href={url} target="_blank" rel="noreferrer" aria-label={nombre} title={nombre}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={trazo} /></svg></a>)}</div></div>}
                     <div className="max-w-md text-xs leading-6 text-tinta-baja">
-                        {REDES.length > 0 && <div className="mb-4"><p className="mb-2 text-xs font-bold uppercase tracking-widest text-menta">Únete a la comunidad</p><div className="redes flex flex-wrap gap-2">{REDES.map(([nombre, url, trazo]) => <a key={nombre} href={url} target="_blank" rel="noreferrer" aria-label={nombre} title={nombre}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={trazo} /></svg></a>)}</div></div>}
                         <p>Rankings de Braacket. Torneos y perfiles de <a href="https://start.gg" target="_blank" rel="noreferrer" className="underline underline-offset-4">start.gg</a>.</p>
                         <p>Límites de <a href="https://www.geoboundaries.org/" target="_blank" rel="noreferrer" className="underline underline-offset-4">geoBoundaries</a> (OpenStreetMap, ODbL).</p>
-                        <Link to="/torneos" className="enlace-menta mt-3">Encuentra tu próximo torneo <IconoFlecha tam={15} /></Link>
+                        <Link to="/#explorar" className="enlace-menta mt-3">Encuentra tu próximo torneo <IconoFlecha tam={15} /></Link>
                     </div>
                 </div>
+                <p className="mx-auto max-w-7xl border-t border-linea px-5 py-5 text-xs leading-5 text-tinta-baja sm:px-8">Super Smash Bros. y todos los personajes son marcas de Nintendo y sus respectivos dueños. SmashGT es un sitio de la comunidad sin afiliación con Nintendo.</p>
             </footer>
         </div>
     );

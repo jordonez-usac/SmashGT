@@ -14,7 +14,7 @@ const Guia = lazy(() => import('./publico/Guia'));
 const CargandoPagina = () => <p className="py-10 text-center text-sm text-slate-500">Cargando…</p>;
 
 const AdminApp = lazy(() => import('./admin/AdminApp'));
-const Torneos = lazy(() => import('./publico/Torneos'));
+const Baneo = lazy(() => import('./publico/Baneo'));
 
 const CargandoPanel = () => (
     <p className="p-10 text-center text-sm text-slate-500">Cargando el panel…</p>
@@ -43,14 +43,8 @@ export default function App() {
                     <Route path="h2h" element={<CaraACara />} />
                     <Route path="resultados" element={<Suspense fallback={<CargandoPagina />}><Resultados /></Suspense>} />
                     <Route path="guia" element={<Suspense fallback={<CargandoPagina />}><Guia /></Suspense>} />
-                    <Route
-                        path="torneos"
-                        element={
-                            <Suspense fallback={<p className="py-10 text-center text-sm text-slate-500">Cargando el mapa…</p>}>
-                                <Torneos />
-                            </Suspense>
-                        }
-                    />
+                    <Route path="baneo" element={<Suspense fallback={<CargandoPagina />}><Baneo /></Suspense>} />
+                    <Route path="torneos" element={<Navigate to="/#explorar" replace />} />
                 </Route>
 
                 <Route
