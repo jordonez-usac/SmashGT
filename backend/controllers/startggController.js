@@ -1,4 +1,5 @@
 const Ranking = require('../models/Ranking');
+const Instantanea = require('../models/Instantanea');
 
 const API = 'https://api.start.gg/gql/alpha';
 const JUEGO_SMASH_ULTIMATE = 1386;
@@ -21,6 +22,19 @@ const leerCache = (llave) => {
 const guardarCache = (llave, datos) => {
     if (cache.size > 500) cache.clear();
     cache.set(llave, { momento: Date.now(), datos });
+};
+
+// Peticiones simultáneas comparten la misma consulta.
+const enCurso = new Map();
+const conCache = (llave, cargar) => {
+    const enCache = leerCache(llave);
+    if (enCache !== null) return Promise.resolve(enCache);
+    if (!enCurso.has(llave)) {
+        enCurso.set(llave, cargar()
+            .then((datos) => { guardarCache(llave, datos); return datos; })
+            .finally(() => enCurso.delete(llave)));
+    }
+    return enCurso.get(llave);
 };
 
 const normalizarIdentificador = (valor) => {
@@ -72,13 +86,14 @@ const CONSULTA_POR_SLUG = `query PerfilPorSlug($valor: String!, $juego: ID!, $li
     user(slug: $valor) { ${CAMPOS_USUARIO} player { ${CAMPOS_JUGADOR} } }
 }`;
 
-const CONSULTA_TORNEOS = `query TorneosGT($desde: Timestamp!, $juego: ID!) {
+const CONSULTA_TORNEOS = `query TorneosGT($desde: Timestamp!, $juego: ID!, $pagina: Int!) {
     tournaments(query: {
         perPage: 40,
-        page: 1,
+        page: $pagina,
         sortBy: "startAt asc",
         filter: { countryCode: "GT", afterDate: $desde, videogameIds: [$juego] }
     }) {
+        pageInfo { totalPages }
         nodes {
             id
             name
@@ -99,17 +114,12 @@ const CONSULTA_TORNEOS = `query TorneosGT($desde: Timestamp!, $juego: ID!) {
 
 const DIAS_ATRAS = 30;
 
-const torneosDeGuatemala = async () => {
+const torneosDeGuatemala = () => conCache('torneos:guatemala', async () => {
     const desde = Math.floor((Date.now() - DIAS_ATRAS * 24 * 60 * 60 * 1000) / 1000);
-    const llave = 'torneos:guatemala';
-    const enCache = leerCache(llave);
-    if (enCache) return enCache;
+    const nodos = await paginar(CONSULTA_TORNEOS, { desde, juego: JUEGO_SMASH_ULTIMATE }, 5);
 
-    const data = await consultar(CONSULTA_TORNEOS, desde, { desde, juego: JUEGO_SMASH_ULTIMATE });
-
-    const torneos = (data.tournaments?.nodes || [])
-        .filter((t) => t.lat && t.lng)
-        .map((t) => ({
+    // Sin coordenadas van en la lista, no en el mapa.
+    return nodos.map((t) => ({
             id: `startgg-${t.id}`,
             fuente: 'startgg',
             nombre: t.name,
@@ -122,25 +132,24 @@ const torneosDeGuatemala = async () => {
                 nombre: t.venueName || '',
                 direccion: t.venueAddress || '',
                 ciudad: t.city || '',
-                lat: t.lat,
-                lng: t.lng
+                lat: t.lat ?? null,
+                lng: t.lng ?? null
             },
             asistentes: t.numAttendees,
             inscripcion_abierta: t.isRegistrationOpen,
             slug: t.slug
         }));
+});
 
-    guardarCache(llave, torneos);
-    return torneos;
-};
-
-const CONSULTA_RESULTADOS = `query ResultadosGT($antes: Timestamp!, $desde: Timestamp!, $juego: ID!) {
+// ~130 objetos por torneo; con 6 por página no se pasa el límite de 1000 de start.gg.
+const CONSULTA_RESULTADOS = `query ResultadosGT($antes: Timestamp!, $desde: Timestamp!, $juego: ID!, $pagina: Int!) {
     tournaments(query: {
-        perPage: 12,
-        page: 1,
+        perPage: 6,
+        page: $pagina,
         sortBy: "startAt desc",
         filter: { countryCode: "GT", beforeDate: $antes, afterDate: $desde, videogameIds: [$juego] }
     }) {
+        pageInfo { totalPages }
         nodes {
             id
             name
@@ -191,18 +200,46 @@ const armarResultado = (t) => {
     };
 };
 
-const resultadosDeGuatemala = async () => {
-    const llave = 'resultados:guatemala';
-    const enCache = leerCache(llave);
-    if (enCache) return enCache;
-
+const traerResultados = async () => {
     const antes = Math.floor(Date.now() / 1000);
     const desde = antes - DIAS_RESULTADOS * 24 * 60 * 60;
-    const data = await consultar(CONSULTA_RESULTADOS, null, { antes, desde, juego: JUEGO_SMASH_ULTIMATE });
-    const resultados = (data.tournaments?.nodes || []).map(armarResultado).filter((t) => t.eventos.length);
+    const nodos = await paginar(CONSULTA_RESULTADOS, { antes, desde, juego: JUEGO_SMASH_ULTIMATE }, 8);
+    return nodos.map(armarResultado).filter((t) => t.eventos.length);
+};
 
-    guardarCache(llave, resultados);
-    return resultados;
+// Son hasta 8 consultas seguidas a start.gg. Se responde con la última copia (guardada también
+// en Mongo para los reinicios) y se actualiza por detrás.
+const VIGENCIA_RESULTADOS = 30 * 60 * 1000;
+let resultados = null;
+let actualizandoResultados = null;
+
+const actualizarResultados = () => {
+    actualizandoResultados ??= traerResultados()
+        .then(async (datos) => {
+            resultados = { momento: Date.now(), datos };
+            await Instantanea.updateOne({ clave: 'resultados' }, { datos, momento: new Date(resultados.momento) }, { upsert: true })
+                .catch((error) => console.log('No se pudo guardar la copia de resultados:', error.message));
+            return datos;
+        })
+        .finally(() => { actualizandoResultados = null; });
+    return actualizandoResultados;
+};
+
+const resultadosDeGuatemala = async () => {
+    if (!resultados) {
+        const guardado = await Instantanea.findOne({ clave: 'resultados' }).lean().catch(() => null);
+        if (guardado) resultados = { momento: new Date(guardado.momento).getTime(), datos: guardado.datos };
+    }
+    if (!resultados) return actualizarResultados();
+    if (Date.now() - resultados.momento > VIGENCIA_RESULTADOS) {
+        actualizarResultados().catch((error) => console.log('No se pudieron actualizar los resultados:', error.message));
+    }
+    return resultados.datos;
+};
+
+const precargarResultados = () => {
+    if (!process.env.STARTGG_API_KEY) return;
+    resultadosDeGuatemala().catch((error) => console.log('No se pudieron precargar los resultados:', error.message));
 };
 
 exports.listarResultados = async (req, res) => {
@@ -225,7 +262,19 @@ const CONSULTA_RESOLVER_ID = `query ResolverId($valor: ID!) {
     player(id: $valor) { id gamerTag prefix user { slug images { type url } } }
 }`;
 
+// start.gg permite 80 llamadas por minuto por token.
+// Cola en memoria: con más de una instancia haría falta un limitador compartido.
+const ESPACIO_ENTRE_LLAMADAS = 750;
+let siguienteTurno = 0;
+const esperarTurno = () => {
+    const ahora = Date.now();
+    const espera = Math.max(0, siguienteTurno - ahora);
+    siguienteTurno = Math.max(ahora, siguienteTurno) + ESPACIO_ENTRE_LLAMADAS;
+    return espera ? new Promise((resolver) => setTimeout(resolver, espera)) : null;
+};
+
 const consultar = async (query, valor, variablesExtra = null) => {
+    await esperarTurno();
     const respuesta = await fetch(API, {
         method: 'POST',
         headers: {
@@ -249,6 +298,16 @@ const consultar = async (query, valor, variablesExtra = null) => {
     const cuerpo = await respuesta.json();
     if (cuerpo.errors?.length) throw new Error(cuerpo.errors[0].message);
     return cuerpo.data;
+};
+
+const paginar = async (query, variables, maxPaginas) => {
+    const nodos = [];
+    for (let pagina = 1, total = 1; pagina <= total && pagina <= maxPaginas; pagina++) {
+        const data = await consultar(query, null, { ...variables, pagina });
+        total = data.tournaments?.pageInfo?.totalPages || 0;
+        nodos.push(...(data.tournaments?.nodes || []));
+    }
+    return nodos;
 };
 
 const imagen = (imagenes, tipo) => imagenes?.find((i) => i.type === tipo)?.url || null;
@@ -413,9 +472,36 @@ exports.resolverJugador = async (req, res) => {
     }
 };
 
+// Un solo request con alias (p0, p1…) en vez de una llamada por jugador.
+const consultaTags = (ids) => `query Tags { ${ids.map((id, i) => `p${i}: player(id: ${id}) { id gamerTag prefix }`).join(' ')} }`;
+
+exports.tagsActuales = async (req, res) => {
+    const ids = req.body?.ids;
+    if (!Array.isArray(ids) || ids.length > 200 || !ids.every((id) => /^\d{1,12}$/.test(String(id)))) {
+        return res.status(400).json({ msg: 'Manda "ids": una lista de hasta 200 player_id numéricos' });
+    }
+    if (!process.env.STARTGG_API_KEY) {
+        return res.status(503).json({ msg: 'El servidor no tiene configurada STARTGG_API_KEY' });
+    }
+    if (!ids.length) return res.json([]);
+    try {
+        const data = await consultar(consultaTags(ids), null, {});
+        res.json(Object.values(data).filter((p) => p?.gamerTag).map((p) => ({
+            player_id: String(p.id),
+            gamerTag: p.gamerTag,
+            prefijo: p.prefix || null
+        })));
+    } catch (error) {
+        console.log('Error trayendo tags de start.gg:', error.message);
+        res.status(502).json({ msg: 'No se pudo consultar start.gg' });
+    }
+};
+
+// 2 torneos × 200 participantes ≈ 800 objetos (límite de 1000).
+// Los torneos de más de 200 participantes quedan incompletos.
 const CONSULTA_PARTICIPANTES = `query ParticipantesGT($desde: Timestamp!, $juego: ID!, $pagina: Int!) {
     tournaments(query: {
-        perPage: 8,
+        perPage: 2,
         page: $pagina,
         sortBy: "startAt desc",
         filter: { countryCode: "GT", afterDate: $desde, videogameIds: [$juego] }
@@ -428,28 +514,32 @@ const CONSULTA_PARTICIPANTES = `query ParticipantesGT($desde: Timestamp!, $juego
 const TTL_INDICE = 60 * 60 * 1000;
 let indice = null;
 
-const indiceParticipantes = async () => {
-    if (indice && Date.now() - indice.momento < TTL_INDICE) return indice.jugadores;
+const cargarIndice = async () => {
     const desde = Math.floor((Date.now() - DIAS_RESULTADOS * 24 * 60 * 60 * 1000) / 1000);
     const jugadores = new Map();
-    for (let pagina = 1, total = 1; pagina <= total && pagina <= 20; pagina++) {
-        const data = await consultar(CONSULTA_PARTICIPANTES, null, { desde, juego: JUEGO_SMASH_ULTIMATE, pagina });
-        total = data.tournaments?.pageInfo?.totalPages || 0;
-        for (const torneo of data.tournaments?.nodes || []) {
-            for (const { player } of torneo.participants?.nodes || []) {
-                if (!player?.id) continue;
-                const previo = jugadores.get(player.id);
-                jugadores.set(player.id, {
-                    player_id: String(player.id),
-                    gamerTag: player.gamerTag,
-                    prefijo: player.prefix || null,
-                    torneos: (previo?.torneos || 0) + 1
-                });
-            }
+    const torneos = await paginar(CONSULTA_PARTICIPANTES, { desde, juego: JUEGO_SMASH_ULTIMATE }, 50);
+    for (const torneo of torneos) {
+        for (const { player } of torneo.participants?.nodes || []) {
+            if (!player?.id) continue;
+            const previo = jugadores.get(player.id);
+            jugadores.set(player.id, {
+                player_id: String(player.id),
+                gamerTag: player.gamerTag,
+                prefijo: player.prefix || null,
+                torneos: (previo?.torneos || 0) + 1
+            });
         }
     }
-    indice = { momento: Date.now(), jugadores: [...jugadores.values()] };
-    return indice.jugadores;
+    return [...jugadores.values()];
+};
+
+const indiceParticipantes = () => {
+    if (!indice || Date.now() - indice.momento >= TTL_INDICE) {
+        const promesa = cargarIndice();
+        indice = { momento: Date.now(), promesa };
+        promesa.catch(() => { if (indice?.promesa === promesa) indice = null; });
+    }
+    return indice.promesa;
 };
 
 const normalizarTag = (nombre) => sinPrefijo(nombre).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '');
@@ -528,4 +618,6 @@ exports.candidatosPara = candidatosPara;
 exports.obtenerPerfilStartgg = obtenerPerfilStartgg;
 exports.torneosDeGuatemala = torneosDeGuatemala;
 exports.armarResultado = armarResultado;
+exports.resultadosDeGuatemala = resultadosDeGuatemala;
+exports.precargarResultados = precargarResultados;
 exports.normalizarIdentificador = normalizarIdentificador;
