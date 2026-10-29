@@ -104,10 +104,6 @@ export default function PanelSolicitudes({ ejecutar, ocupado, resaltada }) {
                     ))}
                 </ul>
             )}
-            <p className="mt-3 text-xs text-slate-500">
-                Al aceptar se crea la cuenta y se le manda una contraseña temporal que vence
-                en 48 horas. Esa persona no puede tocar nada del panel hasta definir la suya.
-            </p>
         </Card>
     );
 }

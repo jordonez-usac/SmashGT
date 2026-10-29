@@ -112,11 +112,6 @@ export default function PanelNoticias({ ejecutar, ocupado }) {
                             value={noticia.contenido}
                             onChange={(contenido) => setNoticia({ ...noticia, contenido })}
                         />
-                        <p className="text-xs text-slate-500">
-                            TinyMCE self-hosted (licencia GPL): no sale a internet ni pide API key.
-                            Las imágenes que pegues quedan embebidas en el HTML como data URI —
-                            mientras no exista un endpoint de subida, conviene no pasarse de peso.
-                        </p>
                     </div>
                 </div>
             </Card>

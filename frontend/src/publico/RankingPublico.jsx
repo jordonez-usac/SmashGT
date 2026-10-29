@@ -40,7 +40,7 @@ export default function RankingPublico() {
                 cargando={cargandoLista}
                 error={errorLista}
                 vacio={rankings.length === 0}
-                textoVacio="El admin todavía no ha publicado un ranking."
+                textoVacio="Aún no hay ranking."
             />
 
             {rankings.length > 1 && (

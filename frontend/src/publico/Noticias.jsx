@@ -26,7 +26,7 @@ export default function Noticias() {
                 cargando={cargando}
                 error={error}
                 vacio={lista.length === 0}
-                textoVacio="El admin todavía no ha publicado noticias."
+                textoVacio="Aún no hay noticias."
             />
 
             <div className="grid gap-4 sm:grid-cols-2">
