@@ -20,7 +20,7 @@ export function ContenidoBanda({ j }) {
         <span className="banda-insignia cifra" aria-label={`Puesto ${j.puesto}`}>{puesto}</span>
         <div className="banda-identidad">
             {j.team && <p className="banda-team">{j.team}</p>}
-            <h3 className="banda-nombre">{j.nombre}</h3>
+            <h3 className={`banda-nombre ${j.nombre.split(' ').some(p => p.length > 10) ? 'largo' : ''}`}>{j.nombre}</h3>
             <div className="banda-chips">
                 {arte && <span className="banda-main">{etiquetaDe(j.skin)}</span>}
                 {tieneDatos(j.matches) && <span className="banda-record cifra"><span className="text-gana">{wins}V</span> · <span className="text-pierde">{losses}D</span><b>{pct}%</b></span>}
@@ -32,7 +32,7 @@ export function ContenidoBanda({ j }) {
 
 export default function BandaRanking({ jugadores }) {
     if (!jugadores?.length) return <p className="text-sm text-tinta">Este ranking no tiene jugadores todavía.</p>;
-    return <ol className="bandas-jugadores grid gap-x-6 gap-y-4 md:grid-cols-2">{jugadores.map((j, i) => {
+    return <ol className="bandas-jugadores grid gap-x-6 gap-y-4 lg:grid-cols-2">{jugadores.map((j, i) => {
         const Envoltura = j.player_id ? Link : 'div';
         return <li data-scroll="jugador" data-demora={i % 2 * .12} key={`${j.puesto}-${j.nombre}`}>
             <Envoltura {...interaccionPersonaje} {...(j.player_id ? { to: `/jugador/${encodeURIComponent(j.player_id)}`, title: `Ver el perfil de ${j.nombre}` } : {})} className="banda-jugador" data-podio={j.puesto <= 3 ? j.puesto : undefined} style={{ '--i': i }}>

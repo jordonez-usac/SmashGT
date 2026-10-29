@@ -31,7 +31,7 @@ function Torneo({ torneo, jugadores }) {
             {torneo.eventos.length > 1 && <div className="mt-4 flex flex-wrap gap-1" role="group" aria-label="Evento">
                 {torneo.eventos.map((e, i) => <button type="button" key={e.id} onClick={() => setIndice(i)} aria-pressed={i === indice} className={`min-h-9 rounded-md px-3 text-xs font-semibold ${i === indice ? 'bg-menta text-noche' : 'text-tinta hover:bg-panel-alto'}`}>{e.nombre}</button>)}
             </div>}
-            <ol className="mt-4 grid gap-1.5">
+            <ol className="mt-4 grid grid-cols-1 gap-1.5">
                 {evento.top.map(fila => {
                     const skin = buscarSkin(fila, jugadores);
                     const contenido = <>
@@ -59,9 +59,9 @@ export default function Resultados() {
         <div>
             <Titulo>Resultados</Titulo>
             <p className="-mt-2 mb-6 max-w-2xl text-sm leading-6 text-tinta">El top 8 de los torneos jugados en Guatemala durante el último año, directo de start.gg.</p>
-            <Estado cargando={cargando} error={null} vacio={!cargando && !error && !datos?.length} textoVacio="Todavía no hay resultados publicados en start.gg." />
+            <Estado cargando={cargando} error={null} vacio={!cargando && !error && !datos?.length} textoVacio="Aún no hay resultados." />
             {error && <div role="alert" className="superficie space-y-3 p-5 text-sm text-tinta"><p>{error}</p><button onClick={recargar} className="boton-menta">Volver a intentar</button></div>}
-            {datos?.length > 0 && <div className="grid items-start gap-5 lg:grid-cols-2">
+            {datos?.length > 0 && <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
                 {datos.map(t => <Torneo key={t.id} torneo={t} jugadores={ranking?.jugadores || []} />)}
             </div>}
         </div>
