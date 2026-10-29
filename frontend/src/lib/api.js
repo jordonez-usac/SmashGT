@@ -72,6 +72,8 @@ export const api = {
 
     obtenerRanking: (id) => request(`/rankings/${id}`),
 
+    listarJugadores: () => request('/rankings/jugadores'),
+
     rankingActual: async () => {
         const lista = await request('/rankings');
         return lista.length ? request(`/rankings/${lista[0]._id}`) : null;

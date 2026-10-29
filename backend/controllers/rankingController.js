@@ -1,5 +1,5 @@
 const Ranking = require('../models/Ranking');
-const { mergeJugadores } = require('../utils/mergeJugadores');
+const { mergeJugadores, unirJugadores } = require('../utils/mergeJugadores');
 
 exports.crearRanking = async (req, res) => {
     const { titulo, jugadores, url_braacket } = req.body;
@@ -25,6 +25,18 @@ exports.obtenerRankings = async (req, res) => {
         res.json(rankings);
     } catch (error) {
         res.status(500).json({ msg: 'Error al obtener los rankings', error: error.message });
+    }
+};
+
+exports.obtenerJugadores = async (req, res) => {
+    try {
+        const rankings = await Ranking.find()
+            .select('titulo jugadores.nombre jugadores.team jugadores.skin jugadores.player_id jugadores.braacket_id jugadores.url_perfil')
+            .sort({ createdAt: -1 })
+            .lean();
+        res.json(unirJugadores(rankings));
+    } catch (error) {
+        res.status(500).json({ msg: 'Error al obtener los jugadores', error: error.message });
     }
 };
 

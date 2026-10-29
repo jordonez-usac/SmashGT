@@ -5,6 +5,8 @@ const { auth } = require('../middlewares/authMiddleware');
 
 router.get('/', rankingController.obtenerRankings);
 
+router.get('/jugadores', rankingController.obtenerJugadores);
+
 router.get('/:id', rankingController.obtenerRankingPorId);
 
 router.post('/', auth, rankingController.crearRanking);

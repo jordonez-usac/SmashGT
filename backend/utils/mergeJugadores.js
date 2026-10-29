@@ -69,4 +69,23 @@ const mergeJugadores = (jugadoresGuardados = [], jugadoresNuevos = [], opciones 
     });
 };
 
-module.exports = { mergeJugadores, tieneDatos, llavesDeIdentidad };
+// Recibe los rankings del más reciente al más viejo.
+const unirJugadores = (rankings = []) => {
+    const indice = new Map();
+    const unidos = [];
+    rankings.forEach((ranking) => {
+        (ranking.jugadores || []).forEach((jugador) => {
+            let unido = buscarExistente(indice, jugador);
+            if (!unido) {
+                unido = { nombre: jugador.nombre, team: null, skin: '', player_id: '', rankings: [] };
+                unidos.push(unido);
+            }
+            ['team', 'skin', 'player_id'].forEach((campo) => { if (!unido[campo] && jugador[campo]) unido[campo] = jugador[campo]; });
+            if (!unido.rankings.includes(ranking.titulo)) unido.rankings.push(ranking.titulo);
+            llavesDeIdentidad(jugador).forEach((llave) => { if (!indice.has(llave)) indice.set(llave, unido); });
+        });
+    });
+    return unidos.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+};
+
+module.exports = { mergeJugadores, tieneDatos, llavesDeIdentidad, unirJugadores };
