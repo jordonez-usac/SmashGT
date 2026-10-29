@@ -6,7 +6,7 @@ import EditorJugadores from '../components/EditorJugadores';
 import ListaRankings from '../components/ListaRankings';
 import VisorJson from '../components/VisorJson';
 import GuiaBraacket from '../components/GuiaBraacket';
-import { armarJugadores, leerH2H, leerRanking } from '../lib/braacketCsv';
+import { aplicarTagsStartgg, armarJugadores, leerH2H, leerRanking } from '../lib/braacketCsv';
 import { PERSONAJES, armarSkin } from '../lib/personajes';
 
 const skinDe = (slug) => (PERSONAJES.includes(slug) ? armarSkin(slug) : '');
@@ -40,11 +40,20 @@ export default function PanelRankings({ ejecutar, ocupado }) {
         correr('Leyendo los CSV', async () => {
             const filas = leerRanking(await csvRanking.text());
             const h2h = csvH2H ? leerH2H(await csvH2H.text()) : new Map();
-            const jugadores = armarJugadores(filas, h2h, ranking.jugadores, skinDe);
+            let jugadores = armarJugadores(filas, h2h, ranking.jugadores, skinDe);
+            const ids = [...new Set(jugadores.map((j) => j.player_id).filter((id) => /^\d+$/.test(id)))];
+            let avisoTags = '';
+            if (ids.length) {
+                try {
+                    jugadores = aplicarTagsStartgg(jugadores, await api.tagsStartgg(ids));
+                } catch (e) {
+                    avisoTags = ` No se pudieron traer los nombres de start.gg (${e.message}), se dejaron los del CSV.`;
+                }
+            }
             setRanking({ ...ranking, titulo: ranking.titulo || 'Ranking de Braacket', jugadores });
             setDesdeCsv(true);
             const conH2H = jugadores.filter((j) => j.h2h.length).length;
-            return `Leídos ${jugadores.length} jugadores, ${conH2H} con head-to-head. Todavía no se guardó nada: revisa y dale "${ranking.id ? 'Actualizar' : 'Guardar como nuevo'}".`;
+            return `Leídos ${jugadores.length} jugadores, ${conH2H} con head-to-head. Todavía no se guardó nada: revisa y dale "${ranking.id ? 'Actualizar' : 'Guardar como nuevo'}".${avisoTags}`;
         });
 
     const abrir = (id) =>
@@ -133,10 +142,6 @@ export default function PanelRankings({ ejecutar, ocupado }) {
                         {ranking.id ? 'Actualizar con los CSV' : 'Importar'}
                     </Boton>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">
-                    Si abres un ranking guardado antes de importar, se conservan sus mains, player_id y equipos.
-                    El head-to-head debe tener los mismos jugadores que el ranking (si no, se rechaza). El récord y los rivales se calculan con esos sets.
-                </p>
             </Card>
 
             <Card
@@ -182,11 +187,6 @@ export default function PanelRankings({ ejecutar, ocupado }) {
                         <span>
                             <span className="font-medium text-slate-200">
                                 Mandar el payload sin head-2-head
-                            </span>
-                            <span className="block text-xs text-slate-500">
-                                Recorta matchups y matches del JSON que se envía, como haría un
-                                frontend que solo edita puestos y skins. Al guardar, el backend
-                                debe devolverte el h2h que ya tenía. Es la prueba de la herencia.
                             </span>
                         </span>
                     </label>

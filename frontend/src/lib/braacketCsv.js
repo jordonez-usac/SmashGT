@@ -21,6 +21,12 @@ export const parseCsv = (texto) => {
 
 export const slugDePersonaje = (nombre) => String(nombre).toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
+export const separarTeam = (texto) => {
+    const partes = String(texto).split('|').map((p) => p.trim()).filter(Boolean);
+    const nombre = partes.pop() || '';
+    return { nombre, team: partes.join(' | ') || null };
+};
+
 export const leerRanking = (texto) => {
     const [encabezado, ...filas] = parseCsv(texto);
     const col = (nombre) => encabezado.findIndex((c) => c.trim().toLowerCase() === nombre);
@@ -98,16 +104,17 @@ export const armarJugadores = (ranking, h2h = new Map(), existentes = [], skinDe
     if (h2h.size) validarH2H(ranking, h2h);
     const porNombre = new Map(existentes.map((j) => [j.nombre.trim().toLowerCase(), j]));
     return ranking.map((fila) => {
-        const previo = porNombre.get(fila.nombre.toLowerCase()) || {};
+        const { nombre, team } = separarTeam(fila.nombre);
+        const previo = porNombre.get(fila.nombre.toLowerCase()) || porNombre.get(nombre.toLowerCase()) || {};
         const main = fila.personajes.map((p) => skinDe(slugDePersonaje(p))).find(Boolean);
-        const rivales = h2h.get(fila.nombre) || [];
+        const rivales = (h2h.get(fila.nombre) || []).map((r) => ({ ...r, rival: separarTeam(r.rival).nombre }));
         const { matches, matchups } = resumenH2H(rivales);
         return {
             puesto: fila.puesto,
-            nombre: fila.nombre,
+            nombre,
             puntos: fila.puntos,
             personajes: fila.personajes,
-            team: previo.team ?? null,
+            team: previo.team || team,
             skin: previo.skin || main || '',
             player_id: previo.player_id || '',
             h2h: rivales,
@@ -115,4 +122,23 @@ export const armarJugadores = (ranking, h2h = new Map(), existentes = [], skinDe
             matchups,
         };
     });
+};
+
+// Tags actuales de start.gg, también en los rivales del h2h (se enlazan por nombre).
+export const aplicarTagsStartgg = (jugadores, tags) => {
+    const porId = new Map(tags.map((t) => [String(t.player_id), t]));
+    const renombres = new Map();
+    const conTags = jugadores.map((j) => {
+        const t = porId.get(String(j.player_id || ''));
+        if (!t) return j;
+        if (t.gamerTag !== j.nombre) renombres.set(j.nombre, t.gamerTag);
+        return { ...j, nombre: t.gamerTag, team: t.prefijo || null };
+    });
+    if (!renombres.size) return conTags;
+    const nuevo = (n) => renombres.get(n) ?? n;
+    return conTags.map((j) => ({
+        ...j,
+        h2h: j.h2h?.map((r) => ({ ...r, rival: nuevo(r.rival) })),
+        matchups: j.matchups && Object.fromEntries(Object.entries(j.matchups).map(([k, v]) => [k, v && { ...v, opponent: nuevo(v.opponent) }])),
+    }));
 };

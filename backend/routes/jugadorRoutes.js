@@ -8,6 +8,8 @@ router.get('/main/:id', auth, limiteStartgg, startggController.detectarMain);
 
 router.post('/buscar', auth, limiteStartgg, startggController.buscarJugadores);
 
+router.post('/tags', auth, limiteStartgg, startggController.tagsActuales);
+
 router.get('/resolver/:identificador', auth, limiteStartgg, startggController.resolverJugador);
 
 router.get('/:identificador', limiteStartgg, startggController.obtenerJugador);

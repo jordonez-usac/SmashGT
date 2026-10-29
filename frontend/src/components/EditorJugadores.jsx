@@ -4,6 +4,7 @@ import { Badge, Boton } from './ui';
 import { ETIQUETAS_MATCHUP, contarMatchups, tieneDatos, tieneH2H } from '../lib/h2h';
 import { SelectorMain } from './Personaje';
 import { armarSkin, slugDePersonaje } from '../lib/personajes';
+import { aplicarTagsStartgg } from '../lib/braacketCsv';
 import { IconoChevron, IconoFlechaDir } from '../publico/rotulacion';
 
 const DetalleH2H = ({ jugador }) => {
@@ -197,10 +198,13 @@ function useBusquedaAutomatica(jugadores, onChange, activa) {
             const nuevas = {};
             for (const { nombre, candidatos } of resultados) {
                 const exactos = candidatos.filter((c) => c.exacto);
-                if (exactos.length === 1) asignados[nombre] = exactos[0].player_id;
+                if (exactos.length === 1) asignados[nombre] = exactos[0];
                 else if (candidatos.length) nuevas[nombre] = candidatos;
             }
-            onChange((actuales) => actuales.map((j) => (!j.player_id && asignados[j.nombre] ? { ...j, player_id: asignados[j.nombre] } : j)));
+            onChange((actuales) => aplicarTagsStartgg(
+                actuales.map((j) => (!j.player_id && asignados[j.nombre] ? { ...j, player_id: asignados[j.nombre].player_id } : j)),
+                Object.values(asignados),
+            ));
             setSugerencias((s) => ({ ...s, ...nuevas }));
             setAviso(`start.gg: ${Object.keys(asignados).length} ids asignados, ${Object.keys(nuevas).length} con sugerencias, ${nombres.length - Object.keys(asignados).length - Object.keys(nuevas).length} sin coincidencias.`);
         }).catch((e) => {

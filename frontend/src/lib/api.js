@@ -95,6 +95,9 @@ export const api = {
     buscarJugadoresStartgg: (nombres) =>
         request('/jugadores/buscar', { method: 'POST', body: { nombres }, auth: true }),
 
+    tagsStartgg: (ids) =>
+        request('/jugadores/tags', { method: 'POST', body: { ids }, auth: true }),
+
     obtenerJugador: (identificador) => request(`/jugadores/${encodeURIComponent(identificador)}`),
 
     listarTorneos: () => request('/torneos'),
