@@ -39,10 +39,8 @@ export const retratoDe = (skin) => {
 };
 
 export const etiquetaDe = (skin) => {
-    const { slug, n } = partirSkin(skin);
-    if (!slug) return 'Sin main';
-    const alt = skinsDe(slug).indexOf(n);
-    return alt > 0 ? `${nombreDe(slug)} (alt ${alt + 1})` : nombreDe(slug);
+    const { slug } = partirSkin(skin);
+    return slug ? nombreDe(slug) : 'Sin main';
 };
 
 export const arteDe = (skin) => partirSkin(skin).slug ? retratoDe(skin) : null;
@@ -74,6 +72,11 @@ const SERIES = {
     persona: 'joker',
     'dragon-quest': 'hero',
     'fatal-fury': 'terry',
+    arms: 'min-min',
+    minecraft: 'steve',
+    tekken: 'kazuya',
+    'kingdom-hearts': 'sora',
+    'super-smash-bros': 'mii-brawler mii-swordfighter mii-gunner',
 };
 const SERIE_DE = Object.fromEntries(Object.entries(SERIES).flatMap(([s, lista]) => lista.split(' ').map((p) => [p, s])));
 export const emblemaDe = (skin) => {
