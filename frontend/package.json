@@ -10,6 +10,9 @@
     "preview": "vite preview",
     "test": "node --test src/lib/*.test.mjs"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "@tinymce/tinymce-react": "^6.3.0",
     "motion": "^14.0.0",

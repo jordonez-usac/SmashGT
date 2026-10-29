@@ -1,0 +1,7 @@
+
+# MemPalace
+mempalace.yaml
+entities.json
+
+# Playwright
+.playwright-mcp/
