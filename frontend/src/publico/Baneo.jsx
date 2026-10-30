@@ -62,7 +62,6 @@ export default function Baneo() {
     return (
         <div className="baneo">
             <Titulo>Baneo de stages</Titulo>
-            <p className="-mt-2 mb-6 max-w-2xl text-sm leading-6 text-tinta">Hagan el striking del game 1 y los baneos de cada counterpick desde un solo celular. Las reglas se pueden ajustar al torneo.</p>
 
             <div className="baneo-formato" role="group" aria-label="Formato del set">
                 {[3, 5].map(n => <button key={n} type="button" aria-pressed={config.mejorDe === n} onClick={() => setConfig(c => ({ ...c, mejorDe: n }))}>
