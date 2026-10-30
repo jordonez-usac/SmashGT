@@ -242,7 +242,7 @@ exports.login = async (req, res) => {
 
         if (admin.isFirstLogin && admin.passwordTemporalExpira && admin.passwordTemporalExpira < new Date()) {
             return res.status(403).json({
-                msg: 'Tu contraseña temporal venció. Pedile al administrador principal que te habilite de nuevo.'
+                msg: 'Tu contraseña temporal venció. Pídele al administrador principal que te habilite de nuevo.'
             });
         }
 
@@ -303,4 +303,20 @@ exports.cambiarPassword = async (req, res) => {
 
 exports.yo = (req, res) => {
     res.json({ admin: req.admin });
+};
+
+exports.actualizarPerfil = async (req, res) => {
+    const nombre = String(req.body.nombre || '').trim();
+    if (nombre.length < 3 || nombre.length > 80) {
+        return res.status(400).json({ msg: 'El nombre debe tener entre 3 y 80 caracteres' });
+    }
+
+    try {
+        const admin = await Admin.findByIdAndUpdate(req.admin.id, { nombre }, { returnDocument: 'after', runValidators: true });
+        if (!admin) return res.status(404).json({ msg: 'La cuenta ya no existe' });
+        res.json({ msg: 'Datos actualizados', admin: perfilPublico(admin) });
+    } catch (error) {
+        console.error('Error al actualizar el perfil:', error);
+        res.status(500).json({ msg: 'Error al actualizar tus datos' });
+    }
 };

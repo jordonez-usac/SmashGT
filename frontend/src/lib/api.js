@@ -61,6 +61,9 @@ export const api = {
 
     yo: () => request('/auth/yo', { auth: true }),
 
+    actualizarPerfil: (nombre) =>
+        request('/auth/perfil', { method: 'PUT', body: { nombre }, auth: true }),
+
     listarSolicitudes: () => request('/auth/solicitudes', { auth: true }),
 
     obtenerSolicitud: (id) => request(`/auth/solicitudes/${id}`, { auth: true }),

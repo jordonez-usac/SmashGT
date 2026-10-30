@@ -11,6 +11,7 @@ router.post('/login', limiteLogin, authController.login);
 router.put('/cambiar-password', limiteCambioPassword, authCambioPassword, authController.cambiarPassword);
 
 router.get('/yo', auth, authController.yo);
+router.put('/perfil', auth, authController.actualizarPerfil);
 
 router.get('/solicitudes', auth, soloPrincipal, authController.listarSolicitudes);
 router.get('/solicitudes/:id', auth, soloPrincipal, authController.obtenerSolicitud);

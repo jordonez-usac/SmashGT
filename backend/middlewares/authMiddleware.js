@@ -21,7 +21,7 @@ const verificarSesion = async (req, res, { permitirInicial }) => {
 
     if (decoded.scope === SCOPE_INICIAL && !permitirInicial) {
         return () => res.status(403).json({
-            msg: 'Todavía tienes la contraseña temporal. Cambiala antes de usar el panel.',
+            msg: 'Todavía tienes la contraseña temporal. Cámbiala antes de usar el panel.',
             requiereCambioPassword: true
         });
     }

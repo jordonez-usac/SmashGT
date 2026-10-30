@@ -4,6 +4,7 @@ import { api, borrarToken, leerToken } from '../lib/api';
 import { Aviso, Badge, Boton } from '../components/ui';
 import Login from '../components/Login';
 import CambiarPassword from '../components/CambiarPassword';
+import EditarPerfil from '../components/EditarPerfil';
 import PanelRankings from './PanelRankings';
 const PanelNoticias = lazy(() => import('./PanelNoticias'));
 import PanelSolicitudes from './PanelSolicitudes';
@@ -21,6 +22,7 @@ export default function AdminApp({ pestanaInicial = 'rankings', solicitudResalta
     const [cargandoSesion, setCargandoSesion] = useState(() => Boolean(leerToken()));
     const [debeCambiarPassword, setDebeCambiarPassword] = useState(false);
     const [cambiandoPassword, setCambiandoPassword] = useState(false);
+    const [editandoPerfil, setEditandoPerfil] = useState(false);
     const [pestana, setPestana] = useState(pestanaInicial);
     const [aviso, setAviso] = useState(null);
     const [ocupado, setOcupado] = useState(null);
@@ -30,6 +32,7 @@ export default function AdminApp({ pestanaInicial = 'rankings', solicitudResalta
         setAdmin(null);
         setDebeCambiarPassword(false);
         setCambiandoPassword(false);
+        setEditandoPerfil(false);
     }, []);
 
     useEffect(() => {
@@ -112,6 +115,20 @@ export default function AdminApp({ pestanaInicial = 'rankings', solicitudResalta
         );
     }
 
+    if (editandoPerfil) {
+        return (
+            <EditarPerfil
+                admin={admin}
+                onListo={(datos) => {
+                    setAdmin(datos);
+                    setEditandoPerfil(false);
+                    setAviso({ tipo: 'exito', mensaje: 'Datos actualizados.' });
+                }}
+                onCancelar={() => setEditandoPerfil(false)}
+            />
+        );
+    }
+
     const esPrincipal = admin.rol === 'principal';
     const pestanas = PESTANAS.filter((p) => !p.soloPrincipal || esPrincipal);
     const activa = pestanas.some((p) => p.id === pestana) ? pestana : pestanas[0].id;
@@ -133,6 +150,9 @@ export default function AdminApp({ pestanaInicial = 'rankings', solicitudResalta
                     >
                         Ver el sitio
                     </Link>
+                    <Boton variante="fantasma" onClick={() => setEditandoPerfil(true)}>
+                        Mis datos
+                    </Boton>
                     <Boton variante="fantasma" onClick={() => setCambiandoPassword(true)}>
                         Cambiar contraseña
                     </Boton>
