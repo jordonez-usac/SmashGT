@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigationType } from 'react-router-dom';
 import { IconoCerrar, IconoFlecha, IconoMenu } from './rotulacion';
 import { useMovimiento } from '../lib/movimiento';
 import FondoVivo from './FondoVivo';
@@ -62,12 +62,14 @@ function BotonTema({ tema, setTema }) {
 }
 
 export default function SitioPublico() {
-    const { pathname } = useLocation();
+    const { pathname, hash } = useLocation();
+    const tipoNavegacion = useNavigationType();
     const navegacion = useMovimiento(pathname, 'seleccion');
     const contenido = useScrollEntrada(pathname);
     const [tema, setTema] = useState(temaInicial);
     const menu = useRef(null);
     useEffect(() => { menu.current?.close(); }, [pathname]);
+    useEffect(() => { if (tipoNavegacion !== 'POP' && !hash) window.scrollTo(0, 0); }, [pathname, hash, tipoNavegacion]);
     const claseEnlace = ({ isActive }) => `enlace-nav flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold ${isActive ? 'nav-activo' : 'text-tinta hover:bg-panel-alto hover:text-white'}`;
     return (
         <div className="sitio-publico min-h-screen bg-canvas">
