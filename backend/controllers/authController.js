@@ -85,7 +85,7 @@ exports.solicitarRegistro = async (req, res) => {
                     El enlace pide tu sesión de administrador principal: nadie más puede resolverla.
                 </p>
             `,
-            text: `Nueva solicitud de acceso\nNombre: ${nombre}\nCorreo: ${email}\n${motivo ? `Motivo: ${motivo}\n` : ''}\nResolvela en: ${enlace}`
+            text: `Nueva solicitud de acceso\nNombre: ${nombre}\nCorreo: ${email}\n${motivo ? `Motivo: ${motivo}\n` : ''}\nResuélvela en: ${enlace}`
         });
 
         res.json(respuestaGenerica);

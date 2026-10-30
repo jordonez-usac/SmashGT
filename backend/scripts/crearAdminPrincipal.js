@@ -31,7 +31,7 @@ const pedirPassword = async () => {
             console.log(`  ✗ ${motivo}`);
             continue;
         }
-        const repetida = await preguntarOculto('Repetila: ');
+        const repetida = await preguntarOculto('Repítela: ');
         if (password !== repetida) {
             console.log('  ✗ No coinciden, prueba de nuevo');
             continue;
@@ -53,7 +53,7 @@ const main = async () => {
 
     if (existente) {
         console.log(`Ya hay un administrador principal: ${existente.nombre} <${existente.email}>`);
-        const respuesta = (await preguntar('¿Le ponés una contraseña nueva? (s/N): ')).toLowerCase();
+        const respuesta = (await preguntar('¿Le pones una contraseña nueva? (s/N): ')).toLowerCase();
         if (respuesta !== 's' && respuesta !== 'si') {
             console.log('No se cambió nada.');
             return;
@@ -84,7 +84,7 @@ const main = async () => {
 
     const yaExiste = await Admin.findOne({ email });
     if (yaExiste) {
-        const respuesta = (await preguntar(`Ese correo ya es admin. ¿Lo volvés principal? (s/N): `)).toLowerCase();
+        const respuesta = (await preguntar(`Ese correo ya es admin. ¿Lo vuelves principal? (s/N): `)).toLowerCase();
         if (respuesta !== 's' && respuesta !== 'si') {
             console.log('No se cambió nada.');
             return;

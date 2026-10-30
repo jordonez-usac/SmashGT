@@ -58,7 +58,7 @@ export default function SolicitarAcceso({ onVolver }) {
                 label="Motivo (opcional)"
                 value={motivo}
                 onChange={(e) => setMotivo(e.target.value)}
-                placeholder="Contale al admin quién sos y para qué necesitas el panel"
+                placeholder="Cuéntale al admin quién eres y para qué necesitas el panel"
                 rows={3}
                 maxLength={500}
             />

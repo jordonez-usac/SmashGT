@@ -61,7 +61,7 @@ export default function CambiarPassword({ obligatorio = false, onListo, onCancel
                         required
                     />
                     <Campo
-                        label="Repetila"
+                        label="Repítela"
                         type="password"
                         value={repetida}
                         onChange={(e) => setRepetida(e.target.value)}
