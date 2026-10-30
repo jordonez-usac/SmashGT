@@ -40,7 +40,7 @@ export default function Guia() {
         <div className="space-y-16">
             <section>
                 <Titulo>Guía de torneos</Titulo>
-                <p className="-mt-2 max-w-2xl text-sm leading-6 text-tinta">Todo lo que necesitas saber para tu primer torneo de Smash Bros. Ultimate en Guatemala. Las reglas cambian un poco entre torneos: revisa siempre las de cada evento en start.gg.</p>
+                <p className="-mt-2 max-w-2xl text-sm leading-6 text-tinta">Todo lo que necesitas saber para tu primer torneo de Smash Bros. Ultimate en Guatemala. Revisa las reglas de cada torneo antes de ir.</p>
             </section>
 
             <section>

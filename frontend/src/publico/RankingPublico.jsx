@@ -65,12 +65,7 @@ export default function RankingPublico() {
             {seleccionado && <Estado cargando={cargandoRanking} error={errorRanking} vacio={false} />}
 
             {ranking && (
-                <>
-                    <TablaRanking jugadores={[...ranking.jugadores].sort((a,b) => a.puesto-b.puesto)} />
-                    <p className="mt-3 text-xs text-slate-600">
-                        Toca a un jugador para ver su perfil con sus torneos de start.gg, o usa la flecha desplegable para su head-2-head.
-                    </p>
-                </>
+                <TablaRanking jugadores={[...ranking.jugadores].sort((a,b) => a.puesto-b.puesto)} />
             )}
         </div>
     );

@@ -58,7 +58,6 @@ export default function Resultados() {
     return (
         <div>
             <Titulo>Resultados</Titulo>
-            <p className="-mt-2 mb-6 max-w-2xl text-sm leading-6 text-tinta">El top 8 de los torneos jugados en Guatemala durante el último año, directo de start.gg.</p>
             <Estado cargando={cargando} error={null} vacio={!cargando && !error && !datos?.length} textoVacio="Aún no hay resultados." />
             {error && <div role="alert" className="superficie space-y-3 p-5 text-sm text-tinta"><p>{error}</p><button onClick={recargar} className="boton-menta">Volver a intentar</button></div>}
             {datos?.length > 0 && <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">

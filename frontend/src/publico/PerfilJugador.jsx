@@ -128,8 +128,7 @@ export default function PerfilJugador() {
                 </section>}
 
                 {jugador?.h2h?.length > 0 && <section>
-                    <h2 className="titulo-competitivo mb-1 text-2xl text-white">Head-to-head</h2>
-                    <p className="mb-4 text-sm text-tinta">Sets ganados y perdidos contra cada jugador del ranking, según Braacket.</p>
+                    <h2 className="titulo-competitivo mb-4 text-2xl text-white">Head-to-head</h2>
                     <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {[...jugador.h2h].sort((x, y) => (y.ganados + y.perdidos) - (x.ganados + x.perdidos)).map(r => {
                             const rival = ranking?.jugadores.find(j => mismo(j.nombre, r.rival));
@@ -150,8 +149,8 @@ export default function PerfilJugador() {
                             {[[true, `Guatemala (${deGuatemala.length})`], [false, `Todos (${todos.length})`]].map(([valor, texto]) => <button key={texto} type="button" aria-pressed={soloGuatemala === valor} onClick={() => setSoloGuatemala(valor)} className={`min-h-10 rounded-md px-3 text-xs font-semibold ${soloGuatemala === valor ? 'bg-menta text-noche' : 'text-tinta'}`}>{texto}</button>)}
                         </div>}
                     </div>
-                    {datos.error_startgg && <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">No se pudo consultar start.gg en este momento. Vuelve a intentar en un rato.</p>}
-                    {!datos.error_startgg && visibles.length === 0 && <p className="text-sm text-tinta">{sg ? 'start.gg no tiene torneos recientes de este jugador en Guatemala.' : 'Este jugador todavía no tiene su perfil de start.gg enlazado.'}</p>}
+                    {datos.error_startgg && <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">No se pudieron cargar los torneos. Intenta en un rato.</p>}
+                    {!datos.error_startgg && visibles.length === 0 && <p className="text-sm text-tinta">Sin torneos recientes.</p>}
                     {visibles.length > 0 && <ol className="grid grid-cols-1 gap-2 lg:grid-cols-2">{visibles.map(t => <FilaTorneo key={`${t.id}-${t.evento}`} torneo={t} />)}</ol>}
                 </section>
             </>}

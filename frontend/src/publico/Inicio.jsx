@@ -42,7 +42,7 @@ export default function Inicio() {
             </section>
             <ProximoTorneo torneos={torneos} />
             <section id="explorar" className="scroll-mt-8">
-                <div data-scroll="titulo" className="mb-5 flex flex-wrap items-end justify-between gap-3"><h2 className="titulo-competitivo text-3xl sm:text-4xl">Tu próxima partida<br /><span className="text-menta">empieza acá.</span></h2><p className="max-w-xs text-sm leading-6 text-tinta">Explora el mapa. Elige un torneo.<br />Nos vemos en el bracket.</p></div>
+                <div data-scroll="titulo" className="mb-5 flex flex-wrap items-end justify-between gap-3"><h2 className="titulo-competitivo text-3xl sm:text-4xl">Tu próxima partida<br /><span className="text-menta">empieza acá.</span></h2><p className="max-w-xs text-sm leading-6 text-tinta">Nos vemos en el bracket.</p></div>
                 <ExploradorTorneos portada />
             </section>
             <BaneoStages />

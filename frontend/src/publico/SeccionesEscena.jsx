@@ -55,7 +55,7 @@ export function EscenaDepartamentos({ torneos }) {
         <section>
             <div data-scroll="titulo" className="mb-6 flex flex-wrap items-end justify-between gap-3">
                 <h2 className="titulo-competitivo text-3xl sm:text-4xl">Guatemala juega<br /><span className="text-menta">de punta a punta.</span></h2>
-                <p className="max-w-xs text-sm leading-6 text-tinta">Torneos recientes y próximos por departamento. ¿No ves el tuyo? Organiza uno y ponlo en el mapa.</p>
+                <p className="max-w-xs text-sm leading-6 text-tinta">¿No ves tu departamento? Organiza un torneo y ponlo en el mapa.</p>
             </div>
             <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {conteo.slice(0, 6).map(([nombre, total], i) => (
@@ -136,7 +136,7 @@ export function BaneoStages() {
         <section data-scroll="panel" className="baneo-cta bloque-acento">
             <div className="max-w-md">
                 <h2 className="titulo-competitivo text-3xl sm:text-4xl">¿Quién banea<br /><span>primero?</span></h2>
-                <p className="mt-4 text-sm leading-6">Hagan el striking y los baneos de stages desde un solo celular, con las reglas de su torneo. Sin discusiones en la mesa.</p>
+                <p className="mt-4 text-sm leading-6">Sin discusiones en la mesa.</p>
                 <Link to="/baneo" className="accion-principal mt-6">Ir al baneo de stages <IconoFlecha tam={18} /></Link>
             </div>
             <Link to="/baneo" className="baneo-cta-collage" aria-hidden="true" tabIndex={-1}>

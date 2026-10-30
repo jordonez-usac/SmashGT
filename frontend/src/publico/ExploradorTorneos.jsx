@@ -36,7 +36,7 @@ export default function ExploradorTorneos({ portada = false }) {
     return (
         <div className="overflow-hidden rounded-2xl border border-linea">
             <div className="bloque-acento flex flex-wrap items-center justify-between gap-4 px-5 py-5 sm:px-7">
-                <div><h2 className="titulo-competitivo text-xl sm:text-2xl">Encuentra dónde se juega</h2><p className="mt-2 text-xs font-medium">Elige un departamento y explora sus torneos.</p></div>
+                <h2 className="titulo-competitivo text-xl sm:text-2xl">Encuentra dónde se juega</h2>
                 <label className="flex items-center gap-2 text-xs font-bold">Departamento
                     <select value={departamento} onChange={e => cambiarDepartamento(e.target.value)} className="max-w-48 rounded-md border border-noche/30 bg-white/80 px-3 py-2.5 text-sm font-medium text-noche focus-visible:outline-noche" disabled={!geojson}>
                         <option value="">Toda Guatemala</option>
@@ -60,11 +60,11 @@ export default function ExploradorTorneos({ portada = false }) {
                             {[['proximos','Próximos'],['pasados','Pasados'],['todos','Todos']].map(([id,nombre]) => <button type="button" key={id} onClick={() => { setPeriodo(id); setSeleccionado(null); }} aria-pressed={periodo===id} className={`min-h-11 flex-1 rounded-md px-2 text-xs font-semibold ${periodo===id ? 'bg-menta text-noche' : 'text-tinta hover:bg-panel-alto'}`}>{nombre}</button>)}
                         </div>
                     </div>
-                    {datos?.error_startgg && <p role="status" className="border-b border-linea px-5 py-3 text-xs leading-5 text-tinta">start.gg no respondió. Mostramos los torneos cargados por SmashGT.</p>}
+                    {datos?.error_startgg && <p role="status" className="border-b border-linea px-5 py-3 text-xs leading-5 text-tinta">Algunos torneos no se pudieron cargar.</p>}
                     <div className={`min-h-40 overflow-y-auto ${portada ? 'max-h-[405px]' : 'max-h-[465px]'}`}>
                         {cargando && <p role="status" className="p-5 text-sm text-tinta">Buscando torneos…</p>}
                         {error && <div role="alert" className="space-y-3 p-5 text-sm text-tinta"><p>{error}</p><button onClick={recargar} className="boton-menta">Volver a intentar</button></div>}
-                        {!cargando && !error && visibles.length===0 && <div className="p-6"><IconoCalendario tam={26} /><p className="mt-4 text-sm font-bold">{departamento ? 'Todavía no hay torneos acá.' : 'No hay torneos en este filtro.'}</p><p className="mt-2 text-xs leading-5 text-tinta">Prueba otra fecha o explora toda Guatemala. Los torneos nuevos aparecen cuando se publican.</p><button type="button" onClick={() => { cambiarDepartamento(''); setPeriodo('todos'); }} className="zona-toque mt-4 text-sm font-semibold text-menta underline underline-offset-4">Ver todos los torneos</button></div>}
+                        {!cargando && !error && visibles.length===0 && <div className="p-6"><IconoCalendario tam={26} /><p className="mt-4 text-sm font-bold">{departamento ? 'Todavía no hay torneos acá.' : 'No hay torneos en este filtro.'}</p><p className="mt-2 text-xs leading-5 text-tinta">Prueba otra fecha o explora toda Guatemala.</p><button type="button" onClick={() => { cambiarDepartamento(''); setPeriodo('todos'); }} className="zona-toque mt-4 text-sm font-semibold text-menta underline underline-offset-4">Ver todos los torneos</button></div>}
                         {visibles.map(t => <article key={t.id} ref={el => { tarjetas.current[t.id]=el; }} className={`border-b border-linea last:border-b-0 ${activo?.id===t.id ? 'bg-panel-alto' : ''}`}>
                             <button type="button" onClick={() => setSeleccionado(activo?.id===t.id ? null : t.id)} aria-expanded={activo?.id===t.id} className="flex w-full gap-3 p-5 text-left hover:bg-panel-alto">
                                 {t.imagen ? <img src={t.imagen} alt="" loading="lazy" className="h-14 w-14 shrink-0 rounded-lg bg-noche object-cover" /> : <span className="grid h-14 w-14 shrink-0 place-items-center rounded-lg border border-linea text-menta"><IconoCalendario tam={23} /></span>}

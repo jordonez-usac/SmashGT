@@ -30,7 +30,6 @@ export default function Jugadores() {
     return (
         <div>
             <Titulo extra={<Link to="/h2h" className="enlace-menta">Comparar jugadores <IconoFlecha /></Link>}>Jugadores</Titulo>
-            <p className="-mt-2 mb-6 max-w-2xl text-sm leading-6 text-tinta">Todos los jugadores de todos los rankings, en orden alfabético. Busca por nombre o filtra por personaje, equipo y ranking.</p>
             <Estado cargando={cargando} error={error} vacio={!cargando && !jugadores.length} textoVacio="Aún no hay jugadores." />
             {jugadores.length > 0 && <>
                 <div className="filtros-jugadores superficie mb-6 grid gap-3 p-3 sm:grid-cols-[1fr_auto_auto_auto]">

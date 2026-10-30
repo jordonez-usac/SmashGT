@@ -49,7 +49,6 @@ export default function CaraACara() {
     return (
         <div>
             <Titulo>Cara a cara</Titulo>
-            <p className="-mt-2 mb-6 max-w-2xl text-sm leading-6 text-tinta">Elige dos jugadores del ranking y compara sus números.</p>
             <section className="cara-escenario">
                 <Lado jugador={a} jugadores={jugadores} onCambiar={p => cambiar('a', p)} etiqueta="Jugador 1" />
                 <div className="cara-vs" aria-hidden="true"><SmashBall tam={44} /><span>VS</span></div>
